@@ -13,6 +13,7 @@ jobs:
     permissions:
       packages: read
       contents: read
+      pages: write
     steps:
       - name: Retrieve the sealed postcard
         env:
@@ -28,6 +29,7 @@ jobs:
           docker cp "$container:/site/." publication/
           test -s publication/card.bin
           test -s publication/index.html
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: publication
