@@ -1,19 +1,18 @@
 name: Publish the winter postcard
 on:
   workflow_dispatch:
-permissions:
-  packages: read
-  pages: write
-  id-token: write
+  push:
+    branches: [main]
+permissions: {}
 concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
-  publish:
+  prepare:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      packages: read
+      contents: read
     steps:
       - name: Retrieve the sealed postcard
         env:
@@ -29,9 +28,20 @@ jobs:
           docker cp "$container:/site/." publication/
           test -s publication/card.bin
           test -s publication/index.html
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: publication
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - uses: actions/deploy-pages@v4
         id: deploy
